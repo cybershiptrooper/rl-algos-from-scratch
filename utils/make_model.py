@@ -8,5 +8,5 @@ model_map = {
     # "ddpg" : DDPG,
 }
 
-def make_model(model_name, env, optimizer, gamma=.99, device="cpu"):
-    return model_map[model_name](env.observation_space.shape, env.action_space.n, optimizer, gamma=gamma).to(device)
+def make_model(model_name, env, device="cpu", **kwargs):
+    return model_map[model_name](env.observation_space.shape, env.action_space.n, **kwargs).to(device)
