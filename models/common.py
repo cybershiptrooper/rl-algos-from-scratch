@@ -5,15 +5,14 @@ import numpy as np
 import abc
 import numpy as np
 from tqdm import tqdm
-
+from utils.hyperparams import Base_Config
 class BaseRLAlgorithm(nn.Module, abc.ABC):
-    def __init__(self, input_shape, num_actions, optimizer=torch.optim.Adam, lr=1e-3, gamma=0.99):
+    def __init__(self, input_shape, num_actions, config=Base_Config()):
         super().__init__()
         self.input_shape = input_shape
         self.num_actions = num_actions
-        self.gamma = gamma
-        self._optimizer = optimizer
-        self._lr = lr
+        self.config = config
+        self.gamma = config.gamma
         if len(self.input_shape) > 1:
             self.transpose = True
         else:
@@ -24,7 +23,7 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
         if self.transpose:
             state = state.transpose(1, 3).transpose(2, 3)
         return self.net(state)
-    
+
     @abc.abstractmethod
     def act(self, state, *args, **kwargs):
         raise NotImplementedError
@@ -39,7 +38,7 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
 
     @property
     def optimizer(self):
-        return self._optimizer(self.parameters(), lr=self._lr)
+        return self.config.optimizer(self.parameters(), lr=self.config.lr)
     
     @property
     def device(self):
@@ -59,14 +58,14 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
                 nn.Conv2d(16, 32, kernel_size=4, stride=2), # 51x38x16 -> 24x18x32
                 nn.ReLU(),
                 nn.MaxPool2d(kernel_size=2, stride=2), # 24x18x32 -> 12x9x32
-                nn.Dropout(p=0.4),
+                # nn.Dropout(p=0.4),
                 nn.Conv2d(32, 64, kernel_size=3, stride=1), # 12x9x32 -> 10x7x64
                 nn.ReLU(),
                 nn.Flatten(), # 10x7x64 -> 4480
-                nn.Dropout(p=0.4),
+                # nn.Dropout(p=0.4),
                 nn.Linear(4480, 256),
                 nn.ReLU(),
-                nn.Dropout(p=0.6),
+                # nn.Dropout(p=0.6),
                 nn.Linear(256, self.num_actions),
                 nn.Softmax(dim=1)
             )
@@ -75,7 +74,7 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
             return nn.Sequential(
                 nn.Linear(self.input_shape[0], 50),
                 nn.ReLU(),
-                nn.Dropout(p=0.6),
+                # nn.Dropout(p=0.6),
                 nn.Linear(50, self.num_actions),
                 nn.Softmax(dim=1)
             )

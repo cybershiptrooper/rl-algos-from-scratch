@@ -32,7 +32,6 @@ class Reinforce(BaseRLAlgorithm):
         return loss.item()
     
     def train(self, env, episodes=1300, render=False):
-        env.reset()
         final_rewards = []
         losses = []
         for episode in tqdm(range(1, episodes+1)):
