@@ -66,8 +66,7 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
                 nn.Linear(4480, 256),
                 nn.ReLU(),
                 # nn.Dropout(p=0.6),
-                nn.Linear(256, self.num_actions),
-                nn.Softmax(dim=1)
+                nn.Linear(256, self.num_actions)
             )
         else:
             self.transpose = False
@@ -75,6 +74,5 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
                 nn.Linear(self.input_shape[0], 50),
                 nn.ReLU(),
                 # nn.Dropout(p=0.6),
-                nn.Linear(50, self.num_actions),
-                nn.Softmax(dim=1)
+                nn.Linear(50, self.num_actions)
             )

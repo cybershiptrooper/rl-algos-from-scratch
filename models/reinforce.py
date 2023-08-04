@@ -1,6 +1,9 @@
 from .common import *
 
 class Reinforce(BaseRLAlgorithm):
+    def forward(self, state):
+        return F.softmax(self.net(state), dim=-1)
+    
     def act(self, state):
         state = torch.from_numpy(state).unsqueeze(0).to(self.device)
         probs = self.forward(state)
@@ -32,13 +35,16 @@ class Reinforce(BaseRLAlgorithm):
         return loss.item()
     
     def train(self, env, episodes=1300, render=False):
-        final_rewards = []
-        losses = []
+        # set up
+        epi_rewards_logger = []
+        epi_losses_logger = []
+
         for episode in tqdm(range(1, episodes+1)):
             done = False
             state, _ = env.reset()
             rewards = []
             log_probs = []
+
             # sample an episode
             while not done:
                 if render:
@@ -50,11 +56,15 @@ class Reinforce(BaseRLAlgorithm):
                 state, reward, done, _, _ = env.step(action)
                 rewards.append(reward)
             env.reset()
-            rewards = np.array(rewards)
+
             # update the model
-            loss = self.update(rewards, log_probs)
-            losses.append(loss)
-            final_rewards.append(rewards.sum())
+            rewards_arr = np.array(rewards)
+            loss = self.update(rewards_arr, log_probs)
+
+            # log
+            epi_losses_logger.append(loss)
+            epi_rewards_logger.append(np.sum(rewards))
             if(episode % 100 == 0 and episode >= 100):
-                print("Episode: ", episode, "Mean Reward for last 100 episodes: ", np.mean(final_rewards[-100:]))
-        return np.array(final_rewards), losses
+                print("Episode: ", episode, 
+                      "\nMean Reward for last 100 episodes: ", np.mean(epi_rewards_logger[-100:]))
+        return np.array(epi_rewards_logger), np.array(epi_losses_logger)

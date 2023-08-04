@@ -8,13 +8,6 @@ Transition = namedtuple('Transition',
                         ('state', 'action', 'new_state', 'reward'))
 
 class DQN(BaseRLAlgorithm):
-    def make_net(self):
-        return nn.Sequential(
-            nn.Linear(self.input_shape[0], 128),
-            nn.ReLU(),
-            nn.Linear(128, self.num_actions)
-        )
-
     def act(self, state, epsilon=0):
         if np.random.random() > epsilon:
             q_value = self.forward(state)
@@ -54,7 +47,7 @@ class DQN(BaseRLAlgorithm):
         net.eval()
         net.requires_grad_(False)
         
-    def train(self, env, episodes=1500, render=False):
+    def train(self, env, episodes=500, render=False):
         # unpack config
         epsilon = self.config.epsilon
         epsilon_min = self.config.epsilon_min
@@ -65,8 +58,8 @@ class DQN(BaseRLAlgorithm):
         tau = self.config.tau
 
         # set up
-        final_log_rewards = []
-        losses_log = []
+        epi_rewards_logger = []
+        epi_losses_logger = []
 
         memory = deque([], maxlen=replay_capacity)
         
@@ -82,9 +75,8 @@ class DQN(BaseRLAlgorithm):
             done = False
             state, _ = env.reset()
             state = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(self.device)
-            log_rewards = []
-            t=0
-            durations_log = []
+            rewards_logger = []
+            losses_logger = []
             while not done:
                 if render:
                     env.render()
@@ -97,7 +89,7 @@ class DQN(BaseRLAlgorithm):
                     state_new = None
                 else:
                     state_new = torch.tensor(state_new, dtype=torch.float32).to(self.device).unsqueeze(0)
-                log_rewards.append(reward)
+                rewards_logger.append(reward)
                 reward = torch.tensor(reward, dtype=torch.float32).unsqueeze(0).to(self.device)
                 action = torch.tensor(action, dtype=torch.long).unsqueeze(0).to(self.device)
                 
@@ -114,20 +106,20 @@ class DQN(BaseRLAlgorithm):
                 
                 # update network
                 loss = self.update(states, actions, rewards, new_states, old_net=old_net)
-                losses_log.append(loss)
+                losses_logger.append(loss)
                 state = state_new
-                t+=1
                 if use_target_net:
                     self.copy_net(old_net, tau=tau)
-            final_log_rewards.append(np.sum(log_rewards))
-            durations_log.append(t+1)
+            epi_rewards_logger.append(np.sum(rewards_logger))
+            if len(losses_logger) == 0:
+                epi_losses_logger.append(-1)
+            else:
+                epi_losses_logger.append(np.mean(losses_logger))
             if(episode % 10 == 0 and episode >= 100):
                 epsilon *= epsilon_decay if epsilon > epsilon_min else 1
                 
             if(episode % 100 == 0 and episode >= 100):
                 print("Episode: ", episode, 
-                      "Mean Reward for last 100 episodes: ", np.mean(final_log_rewards[-100:]),
-                      "Mean Duration for last 100 episodes: ", np.mean(durations_log[-100:])
-                      )
-                print("Epsilon: ", epsilon)
-        return np.array(final_log_rewards), losses_log
+                      "\nMean Reward for last 100 episodes: ", np.mean(epi_rewards_logger[-100:]),
+                      "\nEpsilon: ", epsilon)
+        return np.array(epi_rewards_logger), np.array(epi_losses_logger)
