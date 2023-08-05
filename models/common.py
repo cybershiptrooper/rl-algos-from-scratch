@@ -18,6 +18,8 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
         else:
             self.transpose = False
         self.net = self.make_net()
+        self._optimizer = None # lazy init
+        self._device = None # lazy init
 
     def forward(self, state):
         if self.transpose:
@@ -38,14 +40,18 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
 
     @property
     def optimizer(self):
-        return self.config.optimizer(self.parameters(), lr=self.config.lr)
+        if self._optimizer is None:
+            self._optimizer = self.config.optimizer(self.parameters(), lr=self.config.lr)
+        return self._optimizer
     
     @property
     def device(self):
-        try:
-            return next(self.parameters()).device
-        except StopIteration:
-            return torch.device("cpu")
+        if self._device is None:
+            try:
+                self._device = next(self.parameters()).device
+            except StopIteration:
+                self._device = torch.device("cpu")
+        return self._device
     
     def make_net(self):
         if self.transpose:
@@ -71,8 +77,10 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
         else:
             self.transpose = False
             return nn.Sequential(
-                nn.Linear(self.input_shape[0], 50),
+                nn.Linear(self.input_shape[0], 128),
+                nn.ReLU(),
+                nn.Linear(128, 128),
                 nn.ReLU(),
                 # nn.Dropout(p=0.6),
-                nn.Linear(50, self.num_actions)
+                nn.Linear(128, self.num_actions)
             )

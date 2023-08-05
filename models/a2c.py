@@ -4,7 +4,7 @@ class A2C(BaseRLAlgorithm):
     def act(self, state, epsilon):
         raise NotImplementedError
     
-    def update(self, S, A, R, S_new):
+    def update(self):
         # basic deep q learning update for a single transition:
         raise NotImplementedError
     

@@ -10,9 +10,11 @@ class Base_Config:
 @dataclass
 class DQN_Config(Base_Config):
     epsilon: float = 0.95
-    epsilon_min: float = 0.02
-    epsilon_decay: float = 0.90
-    use_target_net: bool = True
-    replay_capacity: int = 20000
-    batch_size: int = 1024
-    tau: float = 0.001
+    epsilon_min: float = 0.002
+    epsilon_decay: float = .9999
+    replay_capacity: int = 10000
+    batch_size: int = 128
+    tau: float = 0.005
+    change_target_net_every: int = 1
+    optimizer: torch.optim.Optimizer = torch.optim.AdamW
+    lr: float = 1e-4
