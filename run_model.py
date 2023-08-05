@@ -5,11 +5,15 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--env", type=str, default="cartpole")
     argparser.add_argument("--model", type=str, default="reinforce")
+    argparser.add_argument("--episodes", type=int, default=None)
     args = argparser.parse_args()
 
     env = make_env(args.env)
     seed_everything(env)
     model = make_model(args.model, env)
-    rewards, losses = model.train(env)
+    if args.episodes is None:
+        rewards, losses = model.train(env)
+    else:
+        rewards, losses = model.train(env, args.episodes)
     plot_rewards(rewards)
     env.close()

@@ -75,12 +75,11 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
                 nn.Linear(256, self.num_actions)
             )
         else:
-            self.transpose = False
             return nn.Sequential(
-                nn.Linear(self.input_shape[0], 128),
+                nn.Linear(self.input_shape[0], self.config.hidden_size),
                 nn.ReLU(),
-                nn.Linear(128, 128),
+                nn.Linear(self.config.hidden_size, self.config.hidden_size),
                 nn.ReLU(),
                 # nn.Dropout(p=0.6),
-                nn.Linear(128, self.num_actions)
+                nn.Linear(self.config.hidden_size, self.num_actions)
             )

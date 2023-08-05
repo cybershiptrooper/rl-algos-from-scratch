@@ -34,7 +34,7 @@ class Reinforce(BaseRLAlgorithm):
         self.optimizer.step()
         return loss.item()
     
-    def train(self, env, episodes=1500, render=False):
+    def train(self, env, episodes=800, render=False):
         # set up
         epi_rewards_logger = []
         epi_losses_logger = []

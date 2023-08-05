@@ -6,6 +6,7 @@ class Base_Config:
     gamma: float = 0.99
     lr: float = 1e-3
     optimizer: torch.optim.Optimizer = torch.optim.Adam
+    hidden_size: int = 50
 
 @dataclass
 class DQN_Config(Base_Config):
@@ -18,3 +19,24 @@ class DQN_Config(Base_Config):
     change_target_net_every: int = 1
     optimizer: torch.optim.Optimizer = torch.optim.AdamW
     lr: float = 1e-4
+    hidden_size: int = 128
+
+@dataclass
+class A2C_Config(Base_Config):
+    actor_lr: float = 1e-2
+    critic_lr: float = 1e-2
+    actor_optimizer: torch.optim.Optimizer = torch.optim.AdamW
+    critic_optimizer: torch.optim.Optimizer = torch.optim.AdamW
+    gamma: float = 0.99
+    hidden_size: int = 16
+    mc: bool = True
+
+@dataclass
+class TD0_A2C_Config(Base_Config):
+    actor_lr: float = 1e-4
+    critic_lr: float = 1e-4
+    actor_optimizer: torch.optim.Optimizer = torch.optim.AdamW
+    critic_optimizer: torch.optim.Optimizer = torch.optim.AdamW
+    gamma: float = 0.99
+    hidden_size: int = 128
+    mc: bool = True

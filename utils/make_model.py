@@ -4,7 +4,7 @@ from utils.hyperparams import *
 model_map = {
     "dqn" : DQN,
     "reinforce" : Reinforce,
-    # "a2c" : A2C,
+    "a2c" : A2C,
     # "ppo" : PPO,
     # "ddpg" : DDPG,
 }
@@ -12,7 +12,7 @@ model_map = {
 config_map = {
     "reinforce" : Base_Config,
     "dqn" : DQN_Config,
-    # "a2c" : A2C_Config,
+    "a2c" : A2C_Config,
     # "ppo" : PPO_Config,
     # "ddpg" : DDPG_Config,
 }
