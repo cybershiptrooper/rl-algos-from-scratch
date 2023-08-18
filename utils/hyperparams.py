@@ -44,19 +44,19 @@ class TD0_A2C_Config(Base_Config):
 @dataclass
 class DDPG_Config(Base_Config):
     epsilon: float = 0.95
-    epsilon_min: float = 0.002
-    epsilon_decay: float = 1.0
+    epsilon_min: float = 0.05
+    epsilon_decay: float = .9999
     noise_var: float = 0.1
-    replay_capacity: int = 10000
+    replay_capacity: int = 20000
     batch_size: int = 128
     tau: float = 0.005
-    actor_lr: float = 1e-3
+    actor_lr: float = 1e-4
     critic_lr: float = 1e-4
     actor_optimizer: torch.optim.Optimizer = torch.optim.AdamW
     critic_optimizer: torch.optim.Optimizer = torch.optim.AdamW
-    hidden_size: int = 400
+    hidden_size: int = 128
     action_min: torch.tensor = torch.tensor([-1.0])
     action_max: torch.tensor = torch.tensor([1.0])
 
-    test_every: int = 50
+    test_every: int = 10
     test_episodes: int = 10

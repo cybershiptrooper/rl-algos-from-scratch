@@ -1,10 +1,6 @@
 import torch
 from .common import *
-from collections import namedtuple, deque
-from random import sample
-
-Transition = namedtuple('Transition',
-                        ('state', 'action', 'new_state', 'reward'))
+from utils.agent_utils import ReplayBuffer, soft_update
 
 class DQN(BaseRLAlgorithm):
     def act(self, state, epsilon=0):
@@ -34,10 +30,7 @@ class DQN(BaseRLAlgorithm):
         return loss.item()
     
     def copy_net(self, net, tau=0.005):
-        for param, target_param in zip(self.net.parameters(), net.parameters()): # soft-update
-            target_param.data.copy_(tau * param.data + (1 - tau) * target_param.data)
-        net.eval()
-        net.requires_grad_(False)
+        soft_update(self.net, net, tau)
         
     def train(self, env, episodes=800, render=False):
         # unpack config
@@ -54,10 +47,10 @@ class DQN(BaseRLAlgorithm):
         epi_rewards_logger = []
         epi_losses_logger = []
 
-        memory = deque([], maxlen=replay_capacity)
+        replay_buffer = ReplayBuffer(replay_capacity)
         
         target_net = self.make_net().to(self.device)
-        target_net.load_state_dict(self.net.state_dict())
+        self.copy_net(target_net, tau=1)
         target_net.eval()
         target_net.requires_grad_(False)
         steps = 0
@@ -86,15 +79,11 @@ class DQN(BaseRLAlgorithm):
                 action = torch.tensor(action, dtype=torch.long).unsqueeze(0).to(self.device)
                 
                 # update and sample memory
-                memory.append(Transition(state, action, state_new, reward))
-                if len(memory) < batch_size:
+                replay_buffer.push(state, action, state_new, reward)
+                try:
+                    states, actions, new_states, rewards = replay_buffer.sample_batch(batch_size)
+                except ValueError:
                     continue
-                batch = sample(memory, batch_size)
-                batch = Transition(*zip(*batch))
-                states = torch.cat(batch.state)
-                actions = torch.cat(batch.action)
-                rewards = torch.cat(batch.reward)
-                new_states = batch.new_state
                 
                 # update network
                 loss = self.update(states, actions, rewards, new_states, target_net=target_net)
