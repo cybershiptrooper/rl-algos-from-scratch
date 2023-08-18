@@ -2,7 +2,6 @@ import torch
 from .common import *
 from collections import namedtuple, deque
 from random import sample
-from utils.hyperparams import DQN_Config as default_config
 
 Transition = namedtuple('Transition',
                         ('state', 'action', 'new_state', 'reward'))

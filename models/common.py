@@ -50,6 +50,7 @@ class BaseRLAlgorithm(nn.Module, abc.ABC):
             try:
                 self._device = next(self.parameters()).device
             except StopIteration:
+                print("No parameters found, using cpu")
                 self._device = torch.device("cpu")
         return self._device
     
